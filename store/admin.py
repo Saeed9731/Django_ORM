@@ -1,8 +1,8 @@
-from typing import Any
 from django.contrib import admin
 from django.db.models import Count
-from django.db.models.query import QuerySet
-from django.http import HttpRequest
+from django.utils.html import format_html
+from django.urls import reverse
+from django.utils.http import urlencode
 
 from .models import Product, Category, Order, Comment, Customer
 
@@ -41,7 +41,7 @@ class ProductAdmin(admin.ModelAdmin):
         return super() \
                 .get_queryset(request) \
                 .prefetch_related('comments') \
-                .annotate(comment_count= Count('comments'))
+                .annotate(comments_count= Count('comments'))
     
     def is_low(self, product: Product):
         if product.inventory <10:
@@ -54,9 +54,17 @@ class ProductAdmin(admin.ModelAdmin):
     def product_category(self, product:Product):
         return product.category.title
     
-    @admin.display(ordering='comment_count', description='# comments')
+    @admin.display(ordering='comments_count', description='# comments')
     def product_comment(self, product:Product):
-        return product.comment_count
+        url = (
+            reverse('admin:store_comment_changelist') 
+            + '?'
+            + urlencode({
+                'product_id': product.id,
+            })
+        )
+        return format_html('<a href="{}">{}</a>', url, product.comments_count)
+
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
@@ -83,8 +91,6 @@ class CommentAdmin(admin.ModelAdmin):
     list_display = ['id','product', 'status', 'datetime_created']
     list_per_page = 30
     list_editable = ['status']
-    list_display_links = ['id', 'product']
-    ordering = ['-datetime_created']
 
 
 @admin.register(Customer)
