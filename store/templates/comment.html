@@ -1,0 +1,11 @@
+
+<html>
+    <body>
+        {% for comment in comments %}
+            <h3>  {{ comment.name}}</h3>
+            <h6>  {{ comment.product}}</h6>
+            <p>status: {{ comment.status }}</p>
+            <p>.........................</p>
+        {% endfor %}
+    </body>
+</html>

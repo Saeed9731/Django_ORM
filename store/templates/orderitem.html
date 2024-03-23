@@ -1,0 +1,16 @@
+
+<html>
+    <body>
+        {% for oderitem in oderitems %}
+            <h3s> oder {{oderitem.id}}</h3>
+            <p> {{oderitem.customer}}</p>
+            <p>status: {{oderitem.status}}</p>
+            
+            {% for item in oderitem.items.all %}
+                <p>items:  id:{{item.id}}, name: {{item.product.name}}</p>
+            {% endfor %}
+                
+            <p>.........................</p>
+        {% endfor %}
+    </body>
+</html>

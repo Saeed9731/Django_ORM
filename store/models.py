@@ -5,7 +5,8 @@ class Category(models.Model):
     title = models.CharField(max_length=255)
     description = models.CharField(max_length=500, blank=True)
     top_product = models.ForeignKey('Product', on_delete=models.SET_NULL, blank=True, null=True, related_name='+')
-
+    def __str__(self):
+        return f"category: {self.title}"
 
 class Discount(models.Model):
     discount = models.FloatField()
@@ -22,20 +23,27 @@ class Product(models.Model):
     datetime_created = models.DateTimeField(auto_now_add=True)
     datetime_modified = models.DateTimeField(auto_now=True)
     discounts = models.ManyToManyField(Discount, blank=True)
-
+    def __str__(self):
+        return f"product: {self.name}"
 
 class Customer(models.Model):
     first_name =  models.CharField(max_length=255)
     last_name =  models.CharField(max_length=255)
     phone_number = models.CharField(max_length=255)
     birth_date = models.DateField(null=True, blank=True)
-
+    def __str__(self):
+        return f"name: {self.first_name} {self.last_name}"
 
 class Address(models.Model):
     customer = models.OneToOneField(Customer, on_delete=models.CASCADE, primary_key=True)
     province = models.CharField(max_length=255)
     city = models.CharField(max_length=255)
     street = models.CharField(max_length=255)
+
+
+class UnpaidOrderManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(status=Order.ORDER_STATUS_UNPAID)
 
 
 class Order(models.Model):
@@ -51,7 +59,11 @@ class Order(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name='orders')
     datetime_created = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=1, choices=ORDER_STATUS, default=ORDER_STATUS_UNPAID)
-
+    
+    objects = models.Manager()
+    unpaid_orders = UnpaidOrderManager()
+    def __str__(self):
+        return f"Oder id: {self.id}"
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.PROTECT, related_name='items')
@@ -61,6 +73,15 @@ class OrderItem(models.Model):
 
     class Meta:
         unique_together = [['order', 'product']]
+
+
+# class CommentManager(models.Manager):
+#     def get_approved(self):
+#         return self.get_queryset().filter(status=Comment.COMMENT_STATUS_APPROVED)
+
+class ApprovedCommentManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(status=Comment.COMMENT_STATUS_APPROVED)
 
 
 
@@ -79,7 +100,9 @@ class Comment(models.Model):
     body = models.TextField()
     datetime_created = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=2, choices=COMMENT_STATUS, default=COMMENT_STATUS_WAITING)
-
+    
+    objects = models.Manager()
+    approved = ApprovedCommentManager()
 
 class Cart(models.Model):
     # id = models.UUIDField(primary_key=True, default=uuid4)

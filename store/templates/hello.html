@@ -1,6 +1,20 @@
 
 <html>
     <body>
-        <h1>Hello {{name}}!</h1>
+        {% for product in products %}
+            <h3>  {{ product.name }}</h3>
+            <p>{{ product.category }}</p>
+            {% for comment in product.comments.all %}
+                <p>id: {{ comment.id }}, {{ comment.name }}</p>
+
+                {% comment %} <p>price: ${{ comment.unit_price }}</p>
+                <p>quantitiy: {{ comment.quantity }}</p> {% endcomment %}
+            {% endfor %}
+            
+            {% comment %} <h3>  {{ product.inventory }}</h3>
+            <p>id: {{ product.id }}</p>
+            <p>price: ${{ product.unit_price }}</p> {% endcomment %}
+            <p>.........................</p>
+        {% endfor %}
     </body>
 </html>
