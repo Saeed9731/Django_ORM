@@ -2,6 +2,7 @@ from typing import Any
 from django.contrib import admin
 from django.db.models import Count
 from django.db.models.query import QuerySet
+from django.http import HttpRequest
 
 from .models import Product, Category, Order, Comment, Customer
 
@@ -30,11 +31,17 @@ class InventoryFilter(admin.SimpleListFilter):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name','inventory', 'unit_price','product_category', 'is_low']
+    list_display = ['id', 'name','inventory', 'unit_price','product_category','product_comment', 'is_low']
     list_per_page = 30
     list_editable = ['unit_price']
     list_select_related = ['category']
     list_filter = ['datetime_created', InventoryFilter]
+    
+    def get_queryset(self, request):
+        return super() \
+                .get_queryset(request) \
+                .prefetch_related('comments') \
+                .annotate(comment_count= Count('comments'))
     
     def is_low(self, product: Product):
         if product.inventory <10:
@@ -46,6 +53,10 @@ class ProductAdmin(admin.ModelAdmin):
     @admin.display(ordering='category__title')
     def product_category(self, product:Product):
         return product.category.title
+    
+    @admin.display(ordering='comment_count', description='# comments')
+    def product_comment(self, product:Product):
+        return product.comment_count
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
@@ -72,6 +83,7 @@ class CommentAdmin(admin.ModelAdmin):
     list_display = ['id','product', 'status', 'datetime_created']
     list_per_page = 30
     list_editable = ['status']
+    list_display_links = ['id', 'product']
     ordering = ['-datetime_created']
 
 
